@@ -280,6 +280,8 @@ export default {
     },
     methods: {
         columnProp(col, prop) {
+          
+
             return ObjectUtils.getVNodeProp(col, prop);
         },
         onNodeToggle(node) {
@@ -782,7 +784,22 @@ export default {
         },
         updateScrollWidth() {
             this.$refs.table.style.width = this.$refs.table.scrollWidth + 'px';
-        }
+        },
+        recursiveGetChildren(children, results) {
+            if (!results) {
+                results = [];
+            }
+            if (children && children.length) {
+                children.forEach((child) => {
+                    if (child.children instanceof Array) {
+                        results.concat(this.recursiveGetChildren(child.children, results));
+                    } else if (child.type.name == 'Column') {
+                        results.push(child);
+                    }
+                });
+            }
+            return results;
+        },
     },
     computed: {
         containerClass() {
@@ -801,18 +818,12 @@ export default {
             }];
         },
         columns() {
-            let cols = [];
+            //this updated by Ahmed
             let children = this.$slots.default();
-
-            children.forEach(child => {
-                if (child.children && child.children instanceof Array)
-                    cols = [...cols, ...child.children];
-                else if (child.type.name === 'Column')
-                    cols.push(child);
-            });
-
+            let cols = this.recursiveGetChildren(children, []);
             return cols;
         },
+
         processedData() {
             if (this.lazy) {
                 return this.value;
